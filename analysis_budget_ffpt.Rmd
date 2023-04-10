@@ -1,30 +1,421 @@
 ---
-title: "Orçamento FFPT"
+html_document:
+  theme: flatly
 author: "Thais Pereira"
 date: "2023-04-01"
-output: html_document
+title: "Gasto municipal com a Tarifa Zero"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r setup, include=FALSE, out.width="50%"}
+
+(knitr::opts_chunk$set(echo=FALSE, error=FALSE, warning=FALSE, message=FALSE)) 
+
 ```
 
-## R Markdown
+```{css}
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500&display=swap');
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+h1.title{ 
+    font-family: 'Lora', serif;
+    color: #bf7d70;
+    font-size: 30px;
+    text-align: center;
+    font-weight: bold;
+}
 
-```{r cars}
-summary(cars)
+h4.author{ 
+    font-family: 'Lora', serif;
+    color: #bf7d70;
+    font-size: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+h4.date{ 
+    font-family: 'Lora', serif;
+    color: #bf7d70;
+    font-size: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+p{
+  font-family: 'Lora', serif;
+  text-align: justify;
+  font-size: 13px
+}
+
+
+h2 {
+  font-family: 'Lora', serif;
+  font-size: 15px;
+  text-align: justify;
+}
+
+
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+```{r Pacotes}
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+library("reactablefmtr")
+library("tidyverse")
+library("kableExtra")
+library("knitr")
+library("tidylog")
+library("DT")
+library("kableExtra")
+library("tidylog")
+library("readxl")
+library("geobr")
+library("sf")
+library("wesanderson")
+library("ggplot2")
+library("stringr")
+library ("abjData")
+library("extrafont")
+library("lubridate")
+library("transformr")
+library("reactable")
+library("rnaturalearth")
+library("rgeos")
+library("plotly")
+library("ggrepel")
+library('googlesheets4')
+library("leaflet")
+library('ggthemes')
+
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Introdução 
+
+Essa é uma análise do gasto orçamentário dos municípios com política de Tarifa Zero no transporte público e faz parte das análises que estão sendo conduzidas para a minha dissertação de mestrado. Estamos tentando entender se implementar essa política resultou em um aumento ou diminuição do gasto orçamentário com transporte na cidade. Para isso consultou-se os dados dispníveis no site da SINCOFI: https://siconfi.tesouro.gov.br/siconfi
+
+
+```{r baixando arquivos}
+
+ffpt_cities <- read_sheet(ss = "https://docs.google.com/spreadsheets/d/1UnKXflAf5RVRMhCL-FuroTsPZBy7am3qAmD5j_hXc3g/edit#gid=0", sheet = 1)
+
+setwd("C:/Users/55119/Documents/Analises Mestrado/analise_orcamento_ffptt/dados") 
+
+despesas_2016 <- read_delim("2016.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2016") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2022 <- read_delim("2022.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2022")  %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2021 <- read_delim("2021.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2021") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2020 <- read_delim("2020.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2020") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2019 <- read_delim("2019.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2019") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2018 <- read_delim("2018.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2018") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2017 <- read_delim("2017.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2017") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2015 <- read_delim("2015.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2015") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2014 <- read_delim("2014.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2014") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2013 <- read_delim("2013.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "15.453 - Transportes Coletivos Urbanos" &  Coluna == "Despesas Empenhadas") %>% 
+  filter(UF == "SP" | UF == "RJ" | UF == "GO")%>% 
+  mutate(Ano = "2013") %>% rename(Cod_IBGE = Cod.IBGE)
+
+
+# "15.453 - Transportes Coletivos Urbanos"
+# "26 - Transporte"
+
+```
+
+
+## Tratamento dos Dados
+
+
+```{r}
+
+# clusters de cidades 
+
+# implem.2013 <- ffpt_cities %>% filter(ano_implementacao == 2013)
+lmplem.2014 <- ffpt_cities %>% filter(ano_implementacao == 2014)
+implem.2015 <- ffpt_cities %>% filter(ano_implementacao == 2015)
+implem.2017 <- ffpt_cities %>% filter(ano_implementacao == 2017)
+implem.2018 <- ffpt_cities %>% filter(ano_implementacao == 2018)
+implem.2019 <- ffpt_cities %>% filter(ano_implementacao == 2019)
+implem.2020 <- ffpt_cities %>% filter(ano_implementacao == 2020)
+implem.2021 <- ffpt_cities %>% filter(ano_implementacao == 2021)
+
+```
+
+
+```{r}
+
+# Cidades usando o filtro "15.453 - Transportes Coletivos Urbanos"
+
+
+arceburgo <- despesas_2018 %>% 
+  inner_join(implem.2019, by = "Cod_IBGE") %>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2020, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior= Valor) %>% 
+  select(2, 8, 11, 10, 13, 20)
+
+anicuns <- despesas_2013 %>% 
+  inner_join(lmplem.2014, by = "Cod_IBGE") %>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2015, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior = Valor) %>% 
+  select(2, 8, 11, 10, 13, 20)
+  
+
+# juntando as duas cidades
+  
+todas_cidades_1 <-
+arceburgo %>% 
+  bind_rows(anicuns) %>% 
+  select(Cod_IBGE, Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
+
+
+```
+
+## Analise usando a variável "15.453 - Transportes Coletivos Urbanos"
+
+```{r}
+
+
+todas_cidades_1_1 <- todas_cidades_1 %>% 
+  select(Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
+  mutate(Despesa_Anterior = gsub(",",".", Despesa_Anterior))%>% 
+  mutate(Despesa_Anterior = as.numeric(Despesa_Anterior)) %>% 
+  mutate(Despesa_Posterior = gsub(",",".", Despesa_Posterior))%>% 
+  mutate(Despesa_Posterior = as.numeric(Despesa_Posterior)) %>% 
+  mutate(Diferenca = Despesa_Posterior - Despesa_Anterior) %>% 
+  mutate(`Aumentou ou Diminuiu?`= case_when(Estado == "MG" ~ "Diminuiu", 
+                                            Estado == "GO" ~ "Aumentou"))
+  
+  
+  reactable(
+      todas_cidades_1_1,
+      defaultPageSize = 12,
+      searchable = FALSE,
+      outlined = FALSE, 
+      showPageInfo = FALSE, 
+      showPageSizeOptions = FALSE,
+      fullWidth = F,
+      defaultColDef = colDef(
+      align = "center",
+      headerStyle = list(background = "#f7f7f8")),
+      columns = list(
+      Cidade = colDef("Cidade", minWidth = 150, align = "center"),
+      Estado = colDef("UF", minWidth = 90, align = "center"),
+      ano_implementacao = colDef("Ano de Implementação",  minWidth = 130, align = "center"),
+      Despesa_Anterior = colDef("Despesa 1 ano antes", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
+      Despesa_Posterior = colDef("Despesa 1 ano depois", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
+      Diferenca = colDef("Diferença", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150), 
+      `Aumentou ou Diminuiu?` = colDef(cell = icon_sets(todas_cidades_1_1, icons = c("arrow-down", "arrow-up")), minWidth = 160),
+      bordered = TRUE, striped = FALSE, highlight = TRUE))
+
+  
+ 
+```
+
+
+
+```{r}
+
+setwd("C:/Users/55119/Documents/Analises Mestrado/analise_orcamento_ffptt/dados") 
+
+despesas_2016 <- read_delim("2016.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2016") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2022 <- read_delim("2022.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2022")  %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2021 <- read_delim("2021.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2021") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2020 <- read_delim("2020.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2020") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2019 <- read_delim("2019.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2019") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2018 <- read_delim("2018.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2018") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2017 <- read_delim("2017.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas")%>% 
+  mutate(Ano = "2017") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2015 <- read_delim("2015.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2015") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2014 <- read_delim("2014.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" & Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2014") %>% rename(Cod_IBGE = Cod.IBGE)
+despesas_2013 <- read_delim("2013.csv", delim = ";", locale = locale(encoding='latin1'),  skip=3) %>% 
+  filter(Conta == "26 - Transporte" &  Coluna == "Despesas Empenhadas") %>% 
+  mutate(Ano = "2013") %>% rename(Cod_IBGE = Cod.IBGE)
+
+
+# "15.453 - Transportes Coletivos Urbanos"
+# "26 - Transporte"
+
+```
+
+
+```{r}
+
+# Cidades usando o filtro "26 - Transporte"
+
+# implementação 2014
+
+
+cidades_2014 <- despesas_2013 %>% 
+  inner_join(lmplem.2014, by = "Cod_IBGE") %>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2015, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior= Valor) %>% 
+  select(2, 8, 11, 10, 13, 20)
+
+# implementação 2017
+
+cidades_2017 <- despesas_2016 %>% 
+  inner_join(implem.2017, by = "Cod_IBGE")%>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2018, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior = Valor) %>% 
+  select(2, 8, 11, 10, 13, 20)
+  
+# implementação 2018
+
+
+cidades_2018 <- despesas_2017 %>% 
+  inner_join(implem.2018, by = "Cod_IBGE")%>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2019, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior = Valor) %>% 
+  select(2, 8, 11, 10, 13, 20) %>% 
+  mutate(Despesa_Posterior = as.character(Despesa_Posterior))
+
+# implementação 2019
+
+
+cidades_2019 <- despesas_2018 %>% 
+  inner_join(implem.2019, by = "Cod_IBGE") %>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2020, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior = Valor) %>% 
+  select(2, 8, 11, 10, 13, 20)
+
+# implementação 2021
+
+
+cidades_2021 <- despesas_2020 %>% 
+  inner_join(implem.2021, by = "Cod_IBGE") %>%
+  rename(Despesa_Anterior = Valor) %>% 
+  inner_join(despesas_2022, by = "Cod_IBGE") %>% 
+  rename(Despesa_Posterior = Valor) %>% 
+  select(2, 8, 11, 10, 13, 20)
+
+
+# juntando as cidades
+  
+todas_cidades_2 <-   
+cidades_2014 %>% 
+  bind_rows(cidades_2017, cidades_2018, cidades_2019, cidades_2021) %>% 
+  select(Cod_IBGE, Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
+
+
+```
+
+
+## Analise usando a variável "26 - Transporte"
+
+
+```{r}
+
+todas_cidades_2_1 <- todas_cidades_2 %>% 
+  select(Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
+  mutate(Despesa_Anterior = gsub(",",".", Despesa_Anterior))%>% 
+  mutate(Despesa_Anterior = as.numeric(Despesa_Anterior)) %>% 
+  mutate(Despesa_Posterior = gsub(",",".", Despesa_Posterior))%>% 
+  mutate(Despesa_Posterior = as.numeric(Despesa_Posterior)) %>% 
+  mutate(Diferenca = Despesa_Posterior - Despesa_Anterior) %>% 
+  mutate(`Aumentou ou Diminuiu?`= case_when(Estado == "MG" ~ "Aumentou", 
+                                            Estado == "GO" ~ "Aumentou",
+                                            Estado == "RJ" ~ "Aumentou", 
+                                            Estado == "PR" ~ "Diminuiu", 
+                                            Estado == "RS" ~ "Aumentou",
+                                            Cidade == "Dourado" ~ "Aumentou", 
+                                            Cidade == "Morungaba" ~ "Diminuiu",
+                                            Cidade == "Itapeva" ~ "Aumentou",
+                                            Cidade == "Santa Rita do Passa Quatro" ~ "Diminuiu"))
+  
+  
+  reactable(
+      todas_cidades_2_1,
+      defaultPageSize = 12,
+      searchable = FALSE,
+      outlined = FALSE, 
+      showPageInfo = FALSE, 
+      showPageSizeOptions = FALSE,
+      fullWidth = F,
+      defaultColDef = colDef(
+      align = "center",
+      headerStyle = list(background = "#f7f7f8")),
+      columns = list(
+      Cidade = colDef("Cidade", minWidth = 200, align = "center"),
+      Estado = colDef("UF", minWidth = 90, align = "center"),
+      ano_implementacao = colDef("Ano de Implementação",  minWidth = 130, align = "center"),
+      Despesa_Anterior = colDef("Despesa 1 ano antes", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
+      Despesa_Posterior = colDef("Despesa 1 ano depois", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
+      Diferenca = colDef("Diferença", format = colFormat(prefix = "R$ ", separators = TRUE, digits = 1), minWidth = 150), 
+      `Aumentou ou Diminuiu?` = colDef(cell = icon_sets(todas_cidades_2_1, icons = c("arrow-down", "arrow-up")), minWidth = 160),
+      bordered = TRUE, striped = FALSE, highlight = TRUE))
+
+```
+
+## Resumo dos dados
+
+
+```{r fig.align = 'center', out.width = "60%", dpi=300}
+
+todas_cidades_2_1 %>% 
+  bind_rows(todas_cidades_1_1) %>% 
+  group_by(`Aumentou ou Diminuiu?`) %>%
+  tally() %>% 
+  mutate(pct = n/sum(n)) %>% 
+  ggplot() + 
+  geom_col(aes(x = `Aumentou ou Diminuiu?`, y = pct), width = 0.6,  fill = "#bf7d70") + 
+  theme_light() + 
+  xlab("") +
+  ylab("") +
+  ggtitle( "") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  geom_label(aes(x = `Aumentou ou Diminuiu?`, y = pct, label = scales::percent(pct, accuracy = .1)), family = "serif", face = "bold", size = 5) +
+  theme(plot.title = element_text(family = "serif", size = 12, face = "bold", hjust = 0.9, colour = "black"),
+    text = element_text(family = "serif"),
+    axis.text.x=element_text(size = 14, family = "serif"),
+    axis.text.y=element_blank(),
+    legend.title = element_blank())
+  
+
+```
+
+
+
+
+
