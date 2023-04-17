@@ -92,7 +92,7 @@ library('ggthemes')
 ```
 
 
-## Introdução 
+## 1.Introdução 
 
 Essa é uma análise do gasto orçamentário dos municípios com política de Tarifa Zero no transporte público e faz parte das análises que estão sendo conduzidas para a minha dissertação de mestrado. Estamos tentando entender se implementar essa política resultou em um aumento ou diminuição do gasto orçamentário com transporte na cidade. Para isso consultou-se os dados dispníveis no site da SINCOFI: https://siconfi.tesouro.gov.br/siconfi
 
@@ -142,8 +142,6 @@ despesas_2013 <- read_delim("2013.csv", delim = ";", locale = locale(encoding='l
 ```
 
 
-## Tratamento dos Dados
-
 
 ```{r}
 
@@ -191,9 +189,9 @@ arceburgo %>%
 
 ```
 
-## Analise usando a variável "15.453 - Transportes Coletivos Urbanos"
+## 2.Analise usando a variável "15.453 - Transportes Coletivos Urbanos"
 
-```{r}
+```{r  fig.align = 'center', out.width = "60%"}
 
 
 todas_cidades_1_1 <- todas_cidades_1 %>% 
@@ -224,9 +222,9 @@ todas_cidades_1_1 <- todas_cidades_1 %>%
       defaultPageSize = 12,
       searchable = FALSE,
       outlined = FALSE, 
-      showPageInfo = FALSE, 
-      showPageSizeOptions = FALSE,
-      fullWidth = F,
+      showPageInfo = TRUE, 
+      showPageSizeOptions = TRUE,
+      fullWidth = T,
       defaultColDef = colDef(
       align = "center",
       headerStyle = list(background = "#f7f7f8")),
@@ -355,7 +353,7 @@ cidades_2014 %>%
 ```
 
 
-## Analise usando a variável "26 - Transporte"
+## 3.Analise usando a variável "26 - Transporte"
 
 
 ```{r}
@@ -396,11 +394,11 @@ todas_cidades_2_1 <- todas_cidades_2 %>%
 reactable(
       todas_cidades_2_1,
       defaultPageSize = 12,
-      searchable = FALSE,
+      searchable = F,
       outlined = FALSE, 
-      showPageInfo = FALSE, 
-      showPageSizeOptions = FALSE,
-      fullWidth = F,
+      showPageInfo = F, 
+      showPageSizeOptions = F,
+      fullWidth = T,
       defaultColDef = colDef(
       align = "center",
       headerStyle = list(background = "#f7f7f8")),
@@ -418,7 +416,7 @@ reactable(
 
 ```
 
-## Resumo dos dados
+## 4.Resumo dos dados
 
 
 ```{r fig.align = 'center', out.width = "60%", dpi=300}
@@ -428,25 +426,26 @@ todas_cidades_2_1 %>%
   group_by(`Aumentou ou Diminuiu?`) %>%
   tally() %>% 
   mutate(pct = n/sum(n)) %>% 
-  ggplot() + 
-  geom_col(aes(x = `Aumentou ou Diminuiu?`, y = pct), width = 0.6,  fill = "#bf7d70") + 
-  theme_light() + 
-  xlab("") +
-  ylab("") +
-  ggtitle( "") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  geom_label(aes(x = `Aumentou ou Diminuiu?`, y = pct, label = scales::percent(pct, accuracy = .1)), family = "serif", face = "bold", size = 5) +
-  theme(plot.title = element_text(family = "serif", size = 12, face = "bold", hjust = 0.9, colour = "black"),
-    text = element_text(family = "serif"),
-    axis.text.x=element_text(size = 14, family = "serif"),
-    axis.text.y=element_blank(),
-    legend.title = element_blank())
+  reactable(defaultPageSize = 12,
+      searchable = FALSE,
+      outlined = FALSE, 
+      showPageInfo = FALSE, 
+      showPageSizeOptions = FALSE,
+      fullWidth = F,
+      defaultColDef = colDef(
+      align = "center",
+      headerStyle = list(background = "#f7f7f8")),
+      columns = list(
+      `Aumentou ou Diminuiu?` = colDef("Gasto com Transporte Público", minWidth = 180, align = "center"),
+      n = colDef("Total", minWidth = 90, align = "center"),
+      pct = colDef("Proporção", format = colFormat(percent = TRUE, digits = 1), minWidth = 90, align = "center"),
+      bordered = TRUE, striped = FALSE, highlight = TRUE))
   
 
 ```
 
 
-## Média populacional das cidades que em que o gasto aumentou e diminuiu
+## 5.Média populacional das cidades que em que o gasto aumentou e diminuiu
 
 
 ```{r}
@@ -474,7 +473,7 @@ todas_cidades_2_1 %>%
 
 ```
 
-## Média de linhas de ônibus das cidades que em que o gasto aumentou e diminuiu
+## 6.Média de linhas de ônibus das cidades que em que o gasto aumentou e diminuiu
 
 
 ```{r}
@@ -506,10 +505,10 @@ todas_cidades_2_1 %>%
 ```
 
 
-## Gráfico da relação Linhas de ônibus e Gasto com Transporte Público
+## 7.Gráfico da relação Linhas de ônibus e Gasto com Transporte Público
 
 
-```{r fig.align = 'center', out.width = "60%", dpi=300}
+```{r fig.align = 'center', out.width = "70%", dpi=300}
 
 todas_cidades_2_1 %>% 
   ggplot() +
@@ -521,9 +520,9 @@ todas_cidades_2_1 %>%
   coord_flip() +
   geom_label(aes(x = Cidade, y = `Quantidade de Linhas de Ônibus`, label = `Quantidade de Linhas de Ônibus`), family = "serif", face = "bold", size = 4) +
   theme(plot.title = element_text(family = "serif", size = 13, face = "bold", hjust = 0.9, colour = "black"),
-    text = element_text(family = "serif"),
+    text = element_text(size = 13),
     axis.text.x=element_blank(),
-    axis.text.y=element_text(size = 12, family = "serif"),
+    axis.text.y=element_text(size = 12, family = "serif", colour = "black"),
     legend.title = element_blank()) +
     scale_fill_manual(values = wes_palette("Moonrise2"))
 
@@ -533,10 +532,10 @@ todas_cidades_2_1 %>%
 ```
 
 
-## Gráfico da relação Tamanho da População e Gasto com Transporte Público
+## 8.Gráfico da relação Tamanho da População e Gasto com Transporte Público
 
 
-```{r fig.align = 'center', out.width = "60%", dpi=300}
+```{r fig.align = 'center', out.width = "70%", dpi=300}
 
 todas_cidades_2_1 %>% 
   ggplot() +
@@ -546,11 +545,11 @@ todas_cidades_2_1 %>%
   ylab("") +
   ggtitle( "") +
   coord_flip() +
-  geom_label(aes(x = Cidade, y = População.x, label = População.x), family = "serif", face = "bold", size = 4) +
+  geom_label(aes(x = Cidade, y = População.x, label = População.x), family = "serif", face = "bold", size = 3) +
   theme(plot.title = element_text(family = "serif", size = 13, face = "bold", hjust = 0.9, colour = "black"),
-    text = element_text(family = "serif"),
+    text = element_text(size = 13),
     axis.text.x=element_blank(),
-    axis.text.y=element_text(size = 12, family = "serif"),
+    axis.text.y=element_text(size = 12, family = "serif", colour = "black"),
     legend.title = element_blank()) +
     scale_fill_manual(values = wes_palette("Moonrise2"))
 
