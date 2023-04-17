@@ -171,14 +171,14 @@ arceburgo <- despesas_2018 %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2020, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior= Valor) %>% 
-  select(2, 8, 11, 10, 13, 20)
+  select(2, 4, 8, 11, 10, 13, 20)
 
 anicuns <- despesas_2013 %>% 
   inner_join(lmplem.2014, by = "Cod_IBGE") %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2015, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior = Valor) %>% 
-  select(2, 8, 11, 10, 13, 20)
+  select(2, 4, 8, 11, 10, 13, 20)
   
 
 # juntando as duas cidades
@@ -186,7 +186,7 @@ anicuns <- despesas_2013 %>%
 todas_cidades_1 <-
 arceburgo %>% 
   bind_rows(anicuns) %>% 
-  select(Cod_IBGE, Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
+  select(Cod_IBGE, Cidade, Estado, População.x, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
 
 
 ```
@@ -197,15 +197,27 @@ arceburgo %>%
 
 
 todas_cidades_1_1 <- todas_cidades_1 %>% 
-  select(Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
+  select(Cidade, Estado, População.x, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
   mutate(Despesa_Anterior = gsub(",",".", Despesa_Anterior))%>% 
   mutate(Despesa_Anterior = as.numeric(Despesa_Anterior)) %>% 
   mutate(Despesa_Posterior = gsub(",",".", Despesa_Posterior))%>% 
   mutate(Despesa_Posterior = as.numeric(Despesa_Posterior)) %>% 
-  mutate(Diferenca = Despesa_Posterior - Despesa_Anterior) %>% 
+  mutate(Despesa_Posterior = round(Despesa_Posterior, digits = 0)) %>% 
+  mutate(Despesa_Anterior = round(Despesa_Anterior, digits = 0)) %>% 
+  mutate(diferena_percentual = (Despesa_Posterior - Despesa_Anterior)/Despesa_Anterior) %>% 
   mutate(`Aumentou ou Diminuiu?`= case_when(Estado == "MG" ~ "Diminuiu", 
-                                            Estado == "GO" ~ "Aumentou"))
-  
+                                            Estado == "GO" ~ "Aumentou")) %>% 
+  mutate(`Quantidade de Linhas de Ônibus`= case_when(Cidade == "Morungaba" ~ 1, 
+                                            Cidade == "Campo Belo" ~ 2, 
+                                            Cidade == "Itpeva" ~ 25, 
+                                            Cidade == "Arceburgo" ~ 1,
+                                            Cidade == "Anicuns" ~ 13, 
+                                            Cidade == "Dourados" ~ 22,
+                                            Cidade == "Ibaiti" ~ 1, 
+                                            Cidade == "Pedro Osório" ~ 2,
+                                            Cidade == "Santa Rita do Passa Quatro" ~ 5, 
+                                            Cidade == "São José da Barra" ~ 6, 
+                                            Cidade == "Silva Jardim" ~ 9))
   
   reactable(
       todas_cidades_1_1,
@@ -221,15 +233,16 @@ todas_cidades_1_1 <- todas_cidades_1 %>%
       columns = list(
       Cidade = colDef("Cidade", minWidth = 150, align = "center"),
       Estado = colDef("UF", minWidth = 90, align = "center"),
+      População.x = colDef("População", format = colFormat(separators = TRUE), minWidth = 130, align = "center"),
       ano_implementacao = colDef("Ano de Implementação",  minWidth = 130, align = "center"),
       Despesa_Anterior = colDef("Despesa 1 ano antes", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
       Despesa_Posterior = colDef("Despesa 1 ano depois", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
-      Diferenca = colDef("Diferença", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150), 
+      diferena_percentual  = colDef("Percentual de Diferença", format = colFormat(percent = TRUE, digits = 0), minWidth = 160), 
       `Aumentou ou Diminuiu?` = colDef(cell = icon_sets(todas_cidades_1_1, icons = c("arrow-down", "arrow-up")), minWidth = 160),
       bordered = TRUE, striped = FALSE, highlight = TRUE))
 
   
- 
+
 ```
 
 
@@ -288,7 +301,7 @@ cidades_2014 <- despesas_2013 %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2015, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior= Valor) %>% 
-  select(2, 8, 11, 10, 13, 20)
+  select(2, 4, 8, 11, 10, 13, 20)
 
 # implementação 2017
 
@@ -297,7 +310,7 @@ cidades_2017 <- despesas_2016 %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2018, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior = Valor) %>% 
-  select(2, 8, 11, 10, 13, 20)
+  select(2,4, 8, 11, 10, 13, 20)
   
 # implementação 2018
 
@@ -307,7 +320,7 @@ cidades_2018 <- despesas_2017 %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2019, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior = Valor) %>% 
-  select(2, 8, 11, 10, 13, 20) %>% 
+  select(2, 4, 8, 11, 10, 13, 20) %>% 
   mutate(Despesa_Posterior = as.character(Despesa_Posterior))
 
 # implementação 2019
@@ -318,7 +331,7 @@ cidades_2019 <- despesas_2018 %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2020, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior = Valor) %>% 
-  select(2, 8, 11, 10, 13, 20)
+  select(2, 4, 8, 11, 10, 13, 20)
 
 # implementação 2021
 
@@ -328,7 +341,7 @@ cidades_2021 <- despesas_2020 %>%
   rename(Despesa_Anterior = Valor) %>% 
   inner_join(despesas_2022, by = "Cod_IBGE") %>% 
   rename(Despesa_Posterior = Valor) %>% 
-  select(2, 8, 11, 10, 13, 20)
+  select(2, 4, 8, 11, 10, 13, 20)
 
 
 # juntando as cidades
@@ -336,7 +349,7 @@ cidades_2021 <- despesas_2020 %>%
 todas_cidades_2 <-   
 cidades_2014 %>% 
   bind_rows(cidades_2017, cidades_2018, cidades_2019, cidades_2021) %>% 
-  select(Cod_IBGE, Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
+  select(Cod_IBGE, Cidade, Estado, População.x, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
 
 
 ```
@@ -348,12 +361,14 @@ cidades_2014 %>%
 ```{r}
 
 todas_cidades_2_1 <- todas_cidades_2 %>% 
-  select(Cidade, Estado, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
+  select(Cidade, Estado, População.x, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
   mutate(Despesa_Anterior = gsub(",",".", Despesa_Anterior))%>% 
   mutate(Despesa_Anterior = as.numeric(Despesa_Anterior)) %>% 
   mutate(Despesa_Posterior = gsub(",",".", Despesa_Posterior))%>% 
   mutate(Despesa_Posterior = as.numeric(Despesa_Posterior)) %>% 
-  mutate(Diferenca = Despesa_Posterior - Despesa_Anterior) %>% 
+  mutate(Despesa_Posterior = round(Despesa_Posterior, digits = 0)) %>% 
+  mutate(Despesa_Anterior = round(Despesa_Anterior, digits = 0)) %>% 
+  mutate(diferena_percentual = (Despesa_Posterior - Despesa_Anterior)/Despesa_Anterior) %>% 
   mutate(`Aumentou ou Diminuiu?`= case_when(Estado == "MG" ~ "Aumentou", 
                                             Estado == "GO" ~ "Aumentou",
                                             Estado == "RJ" ~ "Aumentou", 
@@ -362,10 +377,23 @@ todas_cidades_2_1 <- todas_cidades_2 %>%
                                             Cidade == "Dourado" ~ "Aumentou", 
                                             Cidade == "Morungaba" ~ "Diminuiu",
                                             Cidade == "Itapeva" ~ "Aumentou",
-                                            Cidade == "Santa Rita do Passa Quatro" ~ "Diminuiu"))
+                                            Cidade == "Santa Rita do Passa Quatro" ~ "Diminuiu")) %>% 
+  arrange(`Aumentou ou Diminuiu?`) %>% 
+    mutate(`Quantidade de Linhas de Ônibus`= case_when(Cidade == "Morungaba" ~ 1, 
+                                            Cidade == "Campo Belo" ~ 2, 
+                                            Cidade == "Itapeva" ~ 25, 
+                                            Cidade == "Arceburgo" ~ 1,
+                                            Cidade == "Anicuns" ~ 13, 
+                                            Cidade == "Dourado" ~ 22,
+                                            Cidade == "Ibaiti" ~ 1, 
+                                            Cidade == "Pedro Osório" ~ 2,
+                                            Cidade == "Santa Rita do Passa Quatro" ~ 5, 
+                                            Cidade == "São José da Barra" ~ 6, 
+                                            Cidade == "Silva Jardim" ~ 9))
   
   
-  reactable(
+  
+reactable(
       todas_cidades_2_1,
       defaultPageSize = 12,
       searchable = FALSE,
@@ -379,10 +407,12 @@ todas_cidades_2_1 <- todas_cidades_2 %>%
       columns = list(
       Cidade = colDef("Cidade", minWidth = 200, align = "center"),
       Estado = colDef("UF", minWidth = 90, align = "center"),
+      População.x = colDef("População", format = colFormat(separators = TRUE), minWidth = 130, align = "center"),
+      `Quantidade de Linhas de Ônibus` = colDef("Quantidade de Linhas de Ônibus", minWidth = 130, align = "center"), 
       ano_implementacao = colDef("Ano de Implementação",  minWidth = 130, align = "center"),
       Despesa_Anterior = colDef("Despesa 1 ano antes", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
       Despesa_Posterior = colDef("Despesa 1 ano depois", format = colFormat(prefix = "R$ ", separators = TRUE), minWidth = 150),
-      Diferenca = colDef("Diferença", format = colFormat(prefix = "R$ ", separators = TRUE, digits = 1), minWidth = 150), 
+      diferena_percentual  = colDef("Percentual de Diferença", format = colFormat(percent = TRUE, digits = 0, separators = TRUE), minWidth = 160), 
       `Aumentou ou Diminuiu?` = colDef(cell = icon_sets(todas_cidades_2_1, icons = c("arrow-down", "arrow-up")), minWidth = 160),
       bordered = TRUE, striped = FALSE, highlight = TRUE))
 
@@ -414,6 +444,141 @@ todas_cidades_2_1 %>%
   
 
 ```
+
+
+## Média populacional das cidades que em que o gasto aumentou e diminuiu
+
+
+```{r}
+
+todas_cidades_2_1 %>% 
+  group_by(`Aumentou ou Diminuiu?`) %>% 
+  summarize(median(População.x), mean(População.x)) %>% 
+  reactable(defaultPageSize = 12,
+      searchable = FALSE,
+      outlined = FALSE, 
+      showPageInfo = FALSE, 
+      showPageSizeOptions = FALSE,
+      fullWidth = F,
+      defaultColDef = colDef(
+      align = "center",
+      headerStyle = list(background = "#f7f7f8")),
+      columns = list(
+      `Aumentou ou Diminuiu?` = colDef("Gasto com Transporte Público", minWidth = 200, align = "center"),
+      `median(População.x)` = colDef("Mediana População", format = colFormat(separators = TRUE), minWidth = 90, align = "center"),
+      `mean(População.x)` = colDef("Média População", format = colFormat(separators = TRUE), minWidth = 130, align = "center"),
+      bordered = TRUE, striped = FALSE, highlight = TRUE))
+
+  
+
+
+```
+
+## Média de linhas de ônibus das cidades que em que o gasto aumentou e diminuiu
+
+
+```{r}
+
+
+todas_cidades_2_1 %>% 
+  group_by(`Aumentou ou Diminuiu?`) %>% 
+  rename(linhas = `Quantidade de Linhas de Ônibus`) %>% 
+  summarize(median(linhas), mean(linhas)) %>% 
+  
+  reactable(defaultPageSize = 12,
+      searchable = FALSE,
+      outlined = FALSE, 
+      showPageInfo = FALSE, 
+      showPageSizeOptions = FALSE,
+      fullWidth = F,
+      defaultColDef = colDef(
+      align = "center",
+      headerStyle = list(background = "#f7f7f8")),
+      columns = list(
+      `Aumentou ou Diminuiu?` = colDef("Gasto com Transporte Público", minWidth = 200, align = "center"),
+      `median(linhas)` = colDef("Mediana Linhas de ônibus", format = colFormat(separators = TRUE, digits = 0), minWidth = 90, align = "center"),
+     `mean(linhas)`= colDef("Média Linhas de ônibus", format = colFormat(separators = TRUE, digits = 0), minWidth = 90, align = "center"),
+      bordered = TRUE, striped = FALSE, highlight = TRUE))
+
+  
+
+
+```
+
+
+## Gráfico da relação Linhas de ônibus e Gasto com Transporte Público
+
+
+```{r fig.align = 'center', out.width = "60%", dpi=300}
+
+todas_cidades_2_1 %>% 
+  ggplot() +
+  geom_col(aes(x = reorder(Cidade, `Quantidade de Linhas de Ônibus`), y = `Quantidade de Linhas de Ônibus`, fill =  `Aumentou ou Diminuiu?`))+
+  theme_light() + 
+  xlab("") +
+  ylab("") +
+  ggtitle( "") +
+  coord_flip() +
+  geom_label(aes(x = Cidade, y = `Quantidade de Linhas de Ônibus`, label = `Quantidade de Linhas de Ônibus`), family = "serif", face = "bold", size = 4) +
+  theme(plot.title = element_text(family = "serif", size = 13, face = "bold", hjust = 0.9, colour = "black"),
+    text = element_text(family = "serif"),
+    axis.text.x=element_blank(),
+    axis.text.y=element_text(size = 12, family = "serif"),
+    legend.title = element_blank()) +
+    scale_fill_manual(values = wes_palette("Moonrise2"))
+
+  
+  
+
+```
+
+
+## Gráfico da relação Tamanho da População e Gasto com Transporte Público
+
+
+```{r fig.align = 'center', out.width = "60%", dpi=300}
+
+todas_cidades_2_1 %>% 
+  ggplot() +
+  geom_col(aes(x = reorder(Cidade, População.x), y = População.x, fill =  `Aumentou ou Diminuiu?`))+
+  theme_light() + 
+  xlab("") +
+  ylab("") +
+  ggtitle( "") +
+  coord_flip() +
+  geom_label(aes(x = Cidade, y = População.x, label = População.x), family = "serif", face = "bold", size = 4) +
+  theme(plot.title = element_text(family = "serif", size = 13, face = "bold", hjust = 0.9, colour = "black"),
+    text = element_text(family = "serif"),
+    axis.text.x=element_blank(),
+    axis.text.y=element_text(size = 12, family = "serif"),
+    legend.title = element_blank()) +
+    scale_fill_manual(values = wes_palette("Moonrise2"))
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
