@@ -80,7 +80,7 @@ h2 {
 
 
 h1, .h1, h2, .h2, h3, .h3 , h4, .h4, h5, .h5, h6, .h6, h7, .h7, h8, .h8 {
-    margin-top: 50px;
+    margin-top: 40px;
 }
 
 
@@ -474,7 +474,7 @@ todas_cidades_2_1 %>%
 ```
 
 
-## 5.Média populacional das cidades que em que o gasto aumentou e diminuiu
+## 5.Média populacional das cidades em que o gasto aumentou e diminuiu
 
 
 ```{r}
@@ -503,7 +503,7 @@ todas_cidades_2_1 %>%
 ```
 
 
-## **6.Média de linhas de ônibus das cidades que em que o gasto aumentou e diminuiu**
+## **6.Média de linhas de ônibus das cidades em que o gasto aumentou e diminuiu**
 
 
 ```{r}
@@ -538,7 +538,7 @@ todas_cidades_2_1 %>%
 ## **7.Gráfico da relação Linhas de ônibus e Gasto com Transporte Público**
 
 
-```{r fig.align = 'center', out.width = "70%", dpi=300}
+```{r fig.align = 'center', out.width = "80%", dpi=300}
 
 todas_cidades_2_1 %>% 
   ggplot() +
@@ -565,7 +565,7 @@ todas_cidades_2_1 %>%
 ## **8.Gráfico da relação Tamanho da População e Gasto com Transporte Público**
 
 
-```{r fig.align = 'center', out.width = "70%", dpi=300}
+```{r fig.align = 'center', out.width = "80%", dpi=300}
 
 todas_cidades_2_1 %>% 
   ggplot() +
