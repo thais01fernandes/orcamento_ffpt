@@ -380,6 +380,7 @@ cidades_2014 %>%
   select(Cod_IBGE, Cidade, Estado, População.x, ano_implementacao, Despesa_Anterior, Despesa_Posterior)
 
 
+
 ```
 ## **3.Analise usando a variável "26 - Transporte"**
 
@@ -388,6 +389,8 @@ cidades_2014 %>%
 
 todas_cidades_2_1 <- todas_cidades_2 %>% 
   select(Cidade, Estado, População.x, ano_implementacao, Despesa_Anterior, Despesa_Posterior) %>% 
+  mutate(`Despesa_Posterior`= case_when(Cidade == "Pedro Osório" ~ "642284,99", 
+                                        Cidade == "São José da Barra" ~ "2269799,07", TRUE ~ `Despesa_Posterior`)) %>% 
   mutate(Despesa_Anterior = gsub(",",".", Despesa_Anterior))%>% 
   mutate(Despesa_Anterior = as.numeric(Despesa_Anterior)) %>% 
   mutate(Despesa_Posterior = gsub(",",".", Despesa_Posterior))%>% 
