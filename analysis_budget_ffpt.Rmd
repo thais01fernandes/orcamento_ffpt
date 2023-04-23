@@ -398,11 +398,13 @@ todas_cidades_2_1 <- todas_cidades_2 %>%
   mutate(Despesa_Posterior = round(Despesa_Posterior, digits = 0)) %>% 
   mutate(Despesa_Anterior = round(Despesa_Anterior, digits = 0)) %>% 
   mutate(diferena_percentual = (Despesa_Posterior - Despesa_Anterior)/Despesa_Anterior) %>% 
-  mutate(`Aumentou ou Diminuiu?`= case_when(Estado == "MG" ~ "Aumentou", 
-                                            Estado == "GO" ~ "Aumentou",
-                                            Estado == "RJ" ~ "Aumentou", 
+  mutate(`Aumentou ou Diminuiu?`= case_when(Cidade == "Arceburgo" ~ "Aumentou", 
+                                            Cidade == "Silva Jardim" ~ "Aumentou",
+                                            Cidade == "Campo Belo" ~ "Aumentou",
+                                            Cidade == "Anicuns" ~ "Aumentou", 
                                             Estado == "PR" ~ "Diminuiu", 
                                             Estado == "RS" ~ "Aumentou",
+                                            Cidade == "São José da Barra" ~ "Diminuiu",
                                             Cidade == "Dourado" ~ "Aumentou", 
                                             Cidade == "Morungaba" ~ "Diminuiu",
                                             Cidade == "Itapeva" ~ "Aumentou",
@@ -454,7 +456,6 @@ reactable(
 ```{r fig.align = 'center', out.width = "60%", dpi=300}
 
 todas_cidades_2_1 %>% 
-  bind_rows(todas_cidades_1_1) %>% 
   group_by(`Aumentou ou Diminuiu?`) %>%
   tally() %>% 
   mutate(pct = n/sum(n)) %>% 
